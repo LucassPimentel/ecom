@@ -1,0 +1,25 @@
+[
+  {
+    "ContainingType": "products_api.Endpoints.ProductEndpoints",
+    "Method": "CreateProductAsync",
+    "RelativePath": "products/new",
+    "HttpMethod": "POST",
+    "IsController": false,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "product",
+        "Type": "products_api.DTOs.ProductDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "System.Void",
+        "MediaTypes": [],
+        "StatusCode": 200
+      }
+    ],
+    "Summary": "Create a new product"
+  }
+]
