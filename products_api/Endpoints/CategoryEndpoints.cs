@@ -1,46 +1,69 @@
 ﻿
+using Dapper;
+using products_api.DTOs;
 using products_api.Entities;
+using static products_api.Context.DbContext;
 
 namespace products_api.Endpoints
 {
     public static class CategoryEndpoints
     {
-        private static readonly List<Category> categories = new List<Category>();
         public static RouteGroupBuilder MapCategoryEndpoints(this RouteGroupBuilder group)
         {
-            //group.MapGet("/", GetCategories)
-            //    .WithSummary("Retrieve all categories");
+            group.MapGet("/", GetCategoriesAsync)
+                .WithSummary("Obter todas as categorias.");
 
-            //group.MapGet("/{id:int}", GetCategoryById)
-            //    .WithSummary("Retrieve a category by ID");
+            group.MapGet("/{id:int}", GetCategoryByIdAsync)
+                .WithSummary("Obter categoria por ID.");
 
-            //group.MapPost("/new/{category}", CreateCategory)
-            //    .WithSummary("Create a new category");
+            group.MapPost("/new/{category}", CreateCategoryAsync)
+                .WithSummary("Criar nova categoria.");
 
             return group;
         }
 
-        //private static IResult CreateCategory(Category category)
-        //{
-        //    categories.Add(category);
-        //    return Results.Created($"/categories/{category.CategoryId}", category);
-        //}
+        private static async Task<IResult> CreateCategoryAsync(GetConnection connectionGetter, PostCategoryDTO postCategoryDto)
+        {
+            var sql = @"INSERT INTO [dbo].[Categories] ([Title], [CreatedAt])
+                        VALUES (@Title, GETDATE())";
 
-        //private static IResult GetCategoryById(int id)
-        //{
-        //    var category = categories.FirstOrDefault(p => p.CategoryId == id);
-        //    if (category == null)
-        //    {
-        //        return Results.NotFound();
-        //    }
-        //    return Results.Ok(category);
-        //}
+            using var connection = await connectionGetter();
+            await connection.ExecuteAsync(sql, new
+            {
+                postCategoryDto.Title,
+            });
 
-        //private static IResult GetCategories()
-        //{
-        //    var category = new Category(1, "Categoria 1");
-        //    categories.Add(category);
-        //    return Results.Ok(categories);
-        //}
+            return Results.Created("/categories/new", postCategoryDto);
+        }
+
+        private static async Task<IResult> GetCategoriesAsync(GetConnection connectionGetter)
+        {
+            var query = @"
+                SELECT [Id], 
+                [Title], 
+                [CreatedAt],
+                [UpdatedAt]
+                FROM [dbo].[Categories]";
+
+            using var connection = await connectionGetter();
+            var categories = await connection.QueryAsync<GetCategoryDTO>(query);
+
+            return Results.Ok(categories);
+        }
+        private static async Task<IResult> GetCategoryByIdAsync(int id, GetConnection connectionGetter)
+        {
+            var queryById = @"
+                SELECT [Id], 
+                [Title], 
+                [CreatedAt],
+                [UpdatedAt]
+                FROM [dbo].[Categories]
+                WHERE Id = @id";
+
+            using var connection = await connectionGetter();
+            var category = await connection.QueryFirstOrDefaultAsync<GetCategoryDTO>(queryById, new { id });
+
+            return category is not null ? Results.Ok(category) : Results.NotFound();
+        }
     }
 }

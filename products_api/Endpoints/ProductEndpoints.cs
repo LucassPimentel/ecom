@@ -36,7 +36,7 @@ namespace products_api.Endpoints
             ,[UpdatedAt]  
             FROM [dbo].[Products]");
 
-            return products.Any() ? Results.Ok(products) : Results.NotFound();
+            return Results.Ok(products);
         }
 
         private static async Task<IResult> GetProductByIdAsync(int Id, GetConnection connectionGetter)
@@ -63,7 +63,7 @@ namespace products_api.Endpoints
         {
             var sql = @"
                 INSERT INTO Products (Name, CategoryId, Description, Price, Stock, ImageUrl, CreatedAt) 
-                VALUES (@Name, @CategoryId, @Description, @Price, @Stock, @ImageUrl, @CreatedAt);";
+                VALUES (@Name, @CategoryId, @Description, @Price, @Stock, @ImageUrl, GETDATE());";
 
             using var connection = await connectionGetter();
             await connection.ExecuteAsync(sql, new
@@ -73,8 +73,7 @@ namespace products_api.Endpoints
                 product.Description,
                 product.Price,
                 product.Stock,
-                product.ImageUrl,
-                CreatedAt = product.CreatedAt ?? DateTime.Now,
+                product.ImageUrl
             });
 
             return Results.Created("/products/new", product);
