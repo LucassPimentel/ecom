@@ -8,5 +8,6 @@ namespace auth.Interfaces.Services
         Task<UserResource?> GetUserByEmail(string email);
         Task<UserResource> LoginAsync(LoginResource userLogin);
         Task<UserResource> RegisterAsync(RegisterResource registerResource);
+        public string GenerateJwtToken(string email);
     }
 }

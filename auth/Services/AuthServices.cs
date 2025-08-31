@@ -3,6 +3,10 @@ using auth.Interfaces.Services;
 using auth.Models;
 using auth.Resources;
 using auth.Util;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace auth.Services
 {
@@ -17,7 +21,7 @@ namespace auth.Services
         {
             _authRepository = authRepository;
             _configuration = configuration;
-            _pepper = _configuration["Pepper"] ?? throw new NullReferenceException("Pepper configuration is missing.");
+            _pepper = _configuration["Jwt:Pepper"] ?? throw new NullReferenceException("Pepper configuration is missing.");
         }
 
         public async Task<UserResource?> GetUserByEmail(string email)
@@ -52,6 +56,27 @@ namespace auth.Services
 
             var newUser = User.Create(registerResource.Email, registerResource.UserName, registerResource.Password, _pepper, _iteration);
             return await _authRepository.AddUserAsync(newUser);
+        }
+
+        public string GenerateJwtToken(string email)
+        {
+            var claims = new[]
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, email),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            };
+
+            var cryptoKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+            var creds = new SigningCredentials(cryptoKey, SecurityAlgorithms.HmacSha256);
+
+            var token = new JwtSecurityToken(
+                issuer: _configuration["Jwt:Issuer"],
+                audience: _configuration["Jwt:Audience"],
+                claims: claims,
+                expires: DateTime.Now.AddMinutes(15),
+                signingCredentials: creds);
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }
 }
