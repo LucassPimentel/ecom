@@ -37,7 +37,8 @@ namespace auth.Repositories
                      OUTPUT INSERTED.Id,
                      		INSERTED.UserName,
                      		INSERTED.Email,
-                     		INSERTED.CreatedAt
+                     		INSERTED.CreatedAt,
+                     		INSERTED.IdRole
                      VALUES 
                      (@UserName,
                      @Email,
@@ -55,15 +56,17 @@ namespace auth.Repositories
             {
                 var parameters = new { Email = email };
                 var query = @"
-                        SELECT Id,
-                        UserName,
-                        Email,
-                        PasswordHash,
-                        PasswordSalt,
-                        CreatedAt
-                        FROM Users
-                        WHERE Email = @Email
-                        AND IsActive = 1";
+                         SELECT U.Id,
+                         UserName,
+                         Email,
+                         PasswordHash,
+                         PasswordSalt,
+                         CreatedAt,
+                         U.IdRole
+                         FROM Users U
+                         INNER JOIN Roles R ON R.Id = U.IdRole
+                         WHERE Email = @Email
+                         AND IsActive = 1";
 
                 return await connection.QueryFirstOrDefaultAsync<User?>(query, param: parameters);
             }

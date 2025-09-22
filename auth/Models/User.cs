@@ -6,6 +6,7 @@ namespace auth.Models
     public class User
     {
         public int Id { get; set; } = 0;
+        public int IdRole { get; set; }
         public string UserName { get; set; }
         public string Email { get; set; }
         public string PasswordSalt { get; set; }

@@ -21,14 +21,6 @@ CREATE TABLE Roles (
     Description TEXT
 );
 
-CREATE TABLE UserRoles (
-    UserId INT NOT NULL,
-    RoleId INT NOT NULL,
-    PRIMARY KEY (UserId, RoleId),
-    FOREIGN KEY (UserId) REFERENCES Users(Id) ON DELETE CASCADE,
-    FOREIGN KEY (RoleId) REFERENCES Roles(Id) ON DELETE CASCADE
-);
-
 CREATE TABLE RefreshTokens (
     Id INT NOT NULL PRIMARY KEY IDENTITY,
     UserId INT NOT NULL,

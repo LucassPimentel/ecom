@@ -20,12 +20,20 @@ namespace auth.Controllers
             try
             {
                 var loginResponse = await _authServices.LoginAsync(userLogin);
-                var token = _authServices.GenerateJwtToken(loginResponse.Email);
+                var token = _authServices.GenerateJwtToken(loginResponse);
                 return Ok(new { token });
+            }
+            catch (ArgumentNullException)
+            {
+                return NotFound("Usuário não encontrado.");
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Unauthorized("Usuário ou senha inválidos.");
             }
             catch (Exception)
             {
-                return Unauthorized("Usuário ou senha inválidos.");
+                return StatusCode(500, "Erro interno do servidor.");
             }
 
         }

@@ -27,13 +27,13 @@ namespace auth.Services
         public async Task<UserResource?> GetUserByEmail(string email)
         {
             var user = await _authRepository.GetUserByEmailAsync(email);
-            return user is not null ? new UserResource(user.Id, user.UserName, user.Email, user.CreatedAt) : null;
+            return user is not null ? new UserResource(user.Id, user.UserName, user.Email, user.CreatedAt, user.IdRole) : null;
         }
 
         public async Task<UserResource> LoginAsync(LoginResource userResource)
         {
             var user = await _authRepository.GetUserByEmailAsync(userResource.Email);
-            if (user is null) throw new UnauthorizedAccessException();
+            if (user is null) throw new ArgumentNullException();
 
             var loginHashedPassword = PasswordHasher.HashPassoword(userResource.Password, user.PasswordSalt, _pepper, _iteration);
             if (loginHashedPassword != user.PasswordHash)
@@ -41,7 +41,7 @@ namespace auth.Services
                 throw new UnauthorizedAccessException();
             }
 
-            return new UserResource(user.Id, user.UserName, user.Email, user.CreatedAt);
+            return new UserResource(user.Id, user.UserName, user.Email, user.CreatedAt, user.IdRole);
         }
 
         public async Task<UserResource> RegisterAsync(RegisterResource registerResource)
@@ -58,11 +58,13 @@ namespace auth.Services
             return await _authRepository.AddUserAsync(newUser);
         }
 
-        public string GenerateJwtToken(string email)
+        public string GenerateJwtToken(UserResource userResource)
         {
             var claims = new[]
             {
-                new Claim(JwtRegisteredClaimNames.Sub, email),
+                new Claim(JwtRegisteredClaimNames.Email, userResource.Email),
+                new Claim(JwtRegisteredClaimNames.Name, userResource.UserName),
+                new Claim("IdRole", userResource.IdRole.ToString()),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 
@@ -73,7 +75,7 @@ namespace auth.Services
                 issuer: _configuration["Jwt:Issuer"],
                 audience: _configuration["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.Now.AddMinutes(15),
+                expires: DateTime.Now.AddMinutes(60),
                 signingCredentials: creds);
 
             return new JwtSecurityTokenHandler().WriteToken(token);
