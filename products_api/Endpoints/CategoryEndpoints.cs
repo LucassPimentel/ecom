@@ -1,7 +1,8 @@
 ﻿
 using Dapper;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Components;
 using products_api.DTOs;
-using products_api.Entities;
 using static products_api.Context.DbContext;
 
 namespace products_api.Endpoints
@@ -17,7 +18,8 @@ namespace products_api.Endpoints
                 .WithSummary("Obter categoria por ID.");
 
             group.MapPost("/new/{category}", CreateCategoryAsync)
-                .WithSummary("Criar nova categoria.");
+                .WithSummary("Criar nova categoria.")
+                .RequireAuthorization();
 
             return group;
         }

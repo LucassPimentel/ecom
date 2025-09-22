@@ -15,7 +15,8 @@ namespace products_api.Endpoints
                 .WithSummary("Retrieve a product by ID");
 
             group.MapPost("/new", CreateProductAsync)
-                .WithSummary("Create a new product");
+                .WithSummary("Create a new product")
+                .RequireAuthorization();
 
             return group;
         }
